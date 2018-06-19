@@ -33,6 +33,9 @@ spec:
       - name: mcstatus
         image: mlda065/mcstatus
         imagePullPolicy: Always
+        volumeMounts:
+        - name: data
+          mountPath: /data
   volumeClaimTemplates:
   - metadata:
       name: data

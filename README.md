@@ -8,3 +8,6 @@ Connect to main pod
 
 Or for the monitoring pod
 `kubectl exec -it task3-0 mcstatus bash`
+
+Get IP address of minecraft
+`kubectl get services`
