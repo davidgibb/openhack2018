@@ -37,8 +37,11 @@ def listTenants():
     services = []
     for s in service_objs:
         health = True
+        if not s.name.lower().startswith('mc-'):
+            break
+        tenantid = s.name[3:]
         data = {
-                "name":s.name,
+                "name":tenantid,
         }
         try:
             extIp = s.obj['status']['loadBalancer']['ingress'][0]['ip']
@@ -55,7 +58,10 @@ def listTenants():
             }
             health = False
 
-        data['healthy'] = health
+        if health:
+            health = podStatus(tenantid)
+
+        data['ready'] = health
         services.append(data)
     pp.pprint(services)
 
@@ -97,8 +103,18 @@ def deleteTenant(tenantid):
     service.delete()
     statefulset.delete()
 
-
-#deleteTenant('tenant1')
-#createTenant('tenant2')
+# returns True iff there are pods for this tenant, and all those pods are ready
+# TODO: deal with status which is not Pending and not Running
+def podStatus(tenantid):
+    pods = pykube.objects.Pod.objects(api).filter(
+                selector={
+                    "tenant":tenantid,
+                    "app":"minecraft"},
+                field_selector={"status.phase": "Running"}
+          )
+    num_running = len([p for p in pods])
+    return(num_running > 0)
+#deleteTenant('tenantb')
+tenantid='tenant7'
+#createTenant(tenantid)
 listTenants()
-

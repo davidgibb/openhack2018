@@ -38,6 +38,9 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /data
+        env:
+        - name: tenant
+          value: "{{TENANT}}" 
   volumeClaimTemplates:
   - metadata:
       name: data
