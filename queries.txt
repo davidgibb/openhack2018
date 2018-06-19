@@ -1,0 +1,5 @@
+ContainerLog | project TimeGenerated, Computer, "image ID", "container name", LogEntrySource, LogEntry, SourceSystem, ContainerID
+| where LogEntry contains "mcnumplayers"
+| parse LogEntry with * "mcnumplayers=" mcnumplayers:int ",mccapacity=" mccapacity:int ",mcpopulation=" mcpopulation:int "\\n"
+| project TimeGenerated, mcnumplayers, mccapacity, mcpopulation 
+| sort by TimeGenerated desc
