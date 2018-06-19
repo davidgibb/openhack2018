@@ -1,0 +1,46 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: mc-{{TENANT}}
+spec:
+  replicas: 1
+  serviceName: "minecraft"
+  selector:
+    matchLabels:
+      app: minecraft
+      tenant: {{TENANT}}
+  template:
+    metadata:
+      labels:
+        app: minecraft
+        tenant: {{TENANT}}
+    spec:
+      containers:
+      - name: minecraft
+        image: openhack/minecraft-server:2.0
+        ports:
+        - containerPort: 25565
+        - containerPort: 25575
+        env:
+        - name: EULA
+          value: "TRUE" 
+        - name: ENABLE_QUERY
+          value: "true"
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      - name: mcstatus
+        image: mlda065/mcstatus
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: data
+          mountPath: /data
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+      tenant: {{TENANT}}
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
