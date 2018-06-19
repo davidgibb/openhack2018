@@ -25,9 +25,14 @@ spec:
         env:
         - name: EULA
           value: "TRUE" 
+        - name: ENABLE_QUERY
+          value: "true"
         volumeMounts:
         - name: data
           mountPath: /data
+      - name: mcstatus
+        image: mlda065/mcstatus
+        imagePullPolicy: Always
   volumeClaimTemplates:
   - metadata:
       name: data
