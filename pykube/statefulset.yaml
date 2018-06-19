@@ -2,6 +2,9 @@ apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
   name: mc-{{TENANT}}
+  labels:
+    app: minecraft
+    tenant: {{TENANT}}
 spec:
   replicas: 1
   serviceName: "minecraft"

@@ -26,11 +26,38 @@ def getObjs(tenantid):
     return((ss_obj,service_obj))
 
 def createTenant(tenantid):
-    print('creating tenant for %s' % tenandid)
+    print('creating tenant for %s' % tenantid)
     (ss,service) = getObjs(tenantid)
 
     ss.create()
     service.create()
+
+def listTenants():
+    service_objs = pykube.Service.objects(api).filter(selector={"app":"minecraft"})
+    services = []
+    for s in service_objs:
+        health = True
+        data = {
+                "name":s.name,
+        }
+        try:
+            extIp = s.obj['status']['loadBalancer']['ingress'][0]['ip']
+            mainPort = [p['port'] for p in s.obj['spec']['ports'] if p['name'].lower() == 'main'][0]
+            rconPort = [p['port'] for p in s.obj['spec']['ports'] if p['name'].lower() == 'rcon'][0]
+            data['endpoints'] = {
+                    "minecraft": extIp + ":" + str(mainPort),
+                    "rcon":extIp + ":" + str(rconPort)
+            }
+        except KeyError:
+            data['endpoints'] = {
+                    "minecraft":"pending",
+                    "rcon": "pending"
+            }
+            health = False
+
+        data['healthy'] = health
+        services.append(data)
+    pp.pprint(services)
 
 def getTenantStatus(tenantid):
 
@@ -72,6 +99,6 @@ def deleteTenant(tenantid):
 
 
 #deleteTenant('tenant1')
-createTenant('tenant2')
-
+#createTenant('tenant2')
+listTenants()
 
