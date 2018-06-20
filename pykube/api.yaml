@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: mcapi
+  name: mcapi
+spec:
+  ports:
+    # The port that this service should serve on.
+    - port: 5000
+      name: main
+  # Label keys and values that must match in order to receive traffic for this service.
+  selector:
+    app: mcapi
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcapi
+  labels:
+    app: mcapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcapi
+  template:
+    metadata:
+      labels:
+        app: mcapi
+    spec:
+      containers:
+      - name: mcapi
+        image: mlda065/mcapi
+        ports:
+        - containerPort: 5000
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: kubeconfig
+          mountPath: "/data/kubeconfig"
+          readOnly: true
+      volumes:
+      - name: kubeconfig
+        secret:
+          secretName: kubeconfig
+
+

@@ -2,8 +2,23 @@ import operator
 import pykube
 import pprint as pp
 import yaml
+from flask import Flask
+from flask import jsonify
+from flask import Response
+from flask.json import dumps
+import os
+app = Flask(__name__)
 
-api = pykube.HTTPClient(pykube.KubeConfig.from_file("/home/matthew/.kube/config"))
+home_fname = '/home/matthew/.kube/config'
+secret_fname = '/data/kubeconfig/config'
+if os.path.isfile(secret_fname):
+    kubeconfig_fname = secret_fname
+else:
+    assert(os.path.isfile(home_fname))
+    kubeconfig_fname = home_fname
+print('Using file %s as kubeconfig' % kubeconfig_fname)
+api = pykube.HTTPClient(pykube.KubeConfig.from_file(kubeconfig_fname))
+
 
 
 # takes in a tenant id
@@ -25,13 +40,23 @@ def getObjs(tenantid):
     service_obj = pykube.Service(api,service_dict)
     return((ss_obj,service_obj))
 
+@app.route('/<tenantid>',methods=['POST'])
 def createTenant(tenantid):
     print('creating tenant for %s' % tenantid)
     (ss,service) = getObjs(tenantid)
 
-    ss.create()
-    service.create()
+    if ss.exists() or service.exists():
+        ret = "Tenant already exists"
+        return(Response(dumps({"error":"Tenant already exists"}), status=404, mimetype='application/json'))
+        return(Response(ret,status=404, mimetype='application/json'))
+    else:
+        ss.create()
+        service.create()
 
+        return(Response(status=202, mimetype='application/json'))
+
+
+@app.route('/',methods=['GET'])
 def listTenants():
     service_objs = pykube.Service.objects(api).filter(selector={"app":"minecraft"})
     services = []
@@ -64,6 +89,8 @@ def listTenants():
         data['ready'] = health
         services.append(data)
     pp.pprint(services)
+    print('list function returning')
+    return(dumps(services))
 
 def getTenantStatus(tenantid):
 
@@ -73,7 +100,7 @@ def getTenantStatus(tenantid):
 
     # wait for stateful set to be ready
     watch = ss.watch()
-    print('Watching for statefulset creation') 
+    print('Watching for statefulset creation')
     # watch is a generator:
     for watch_event in watch:
         if watch_event.type == 'ADDED':
@@ -87,7 +114,7 @@ def getTenantStatus(tenantid):
     # Wait for service to be ready
 
     watch = service.watch()
-  
+
     # watch is a generator:
     for watch_event in watch:
         print(watch_event.type) # 'ADDED', 'DELETED', 'MODIFIED'
@@ -95,13 +122,20 @@ def getTenantStatus(tenantid):
 
     print('done')
 
+
+@app.route('/<tenantid>',methods=['DELETE'])
 def deleteTenant(tenantid):
 
     print('deleting statefulset and service for tenant %s' % tenantid)
     (service,statefulset) = getObjs(tenantid)
 
-    service.delete()
-    statefulset.delete()
+    if (service.exists() or statefulset.exists()):
+
+        service.delete()
+        statefulset.delete()
+        return(Response("", status=202, mimetype='application/json'))
+    else:
+        return(Response(dumps({"error":"Tenant does not exist"}), status=404, mimetype='application/json'))
 
 # returns True iff there are pods for this tenant, and all those pods are ready
 # TODO: deal with status which is not Pending and not Running
@@ -114,7 +148,10 @@ def podStatus(tenantid):
           )
     num_running = len([p for p in pods])
     return(num_running > 0)
+
 #deleteTenant('tenantb')
-tenantid='tenant7'
+# tenantid='tenant7'
 #createTenant(tenantid)
-listTenants()
+
+if __name__ == '__main__':
+    app.run(debug=True,host='0.0.0.0')

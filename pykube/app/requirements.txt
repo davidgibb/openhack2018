@@ -1,2 +1,3 @@
 pykube
 mcstatus
+Flask==0.10.1
