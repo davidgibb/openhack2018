@@ -1,0 +1,4 @@
+Perf
+| where ObjectName == "K8SNode"
+| where CounterName == "cpuUsageNanoCores"
+| summarize cpu = avg(CounterValue) / 1000000000 by bin(TimeGenerated, 30m), Computer

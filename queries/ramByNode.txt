@@ -1,0 +1,6 @@
+Perf
+| where ObjectName == "K8SNode"
+| where CounterName contains "memory"
+| where CounterName == "memoryRssBytes"
+| sort by TimeGenerated desc
+| summarize AvgMem = avg(CounterValue) by bin(TimeGenerated, 30m), Computer

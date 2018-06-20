@@ -1,0 +1,6 @@
+ContainerImageInventory
+| where Image contains "minecraft"
+| summarize max(ImageTag) by ImageTag, Image, ImageSize
+| distinct ImageTag, Image, ImageSize
+| order by ImageTag  desc  nulls last
+| take 1

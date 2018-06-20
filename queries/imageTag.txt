@@ -1,0 +1,3 @@
+ContainerImageInventory
+| where Image  contains "minecraft"
+| summarize AggregatedValue = count() by Image, ImageTag, Running, TotalContainer

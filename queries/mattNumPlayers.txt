@@ -1,0 +1,6 @@
+ContainerLog
+| project TimeGenerated, Computer, "image ID", "container name", LogEntrySource, LogEntry, SourceSystem, ContainerID
+| where LogEntry contains "mcnumplayers"
+| parse LogEntry with * "mcnumplayers=" mcnumplayers:long ",mccapacity=" mccapacity ",mcpopulation=" mcpopulation "\\n"
+| sort by TimeGenerated desc
+| summarize mcplayersavg = avg(mcnumplayers) by bin(TimeGenerated, 2m)

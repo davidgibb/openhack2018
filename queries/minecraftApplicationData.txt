@@ -1,0 +1,3 @@
+ContainerLog
+| project TimeGenerated, Computer, "image ID", "container name", LogEntrySource, LogEntry, SourceSystem, ContainerID
+| sort by TimeGenerated desc

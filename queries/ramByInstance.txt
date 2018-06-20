@@ -1,0 +1,4 @@
+Perf
+| where ObjectName == "Container" and CounterName == "Memory Usage MB"
+| where InstanceName contains "minecraft_task3-0"
+| summarize AvgUsedMemory = avg(CounterValue) by bin(TimeGenerated, 5m), InstanceName

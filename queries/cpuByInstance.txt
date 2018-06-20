@@ -1,0 +1,4 @@
+Perf
+| where ObjectName == "Container" and CounterName == "% Processor Time"
+| where InstanceName contains "minecraft_task3-0"
+| summarize AvgCPUPercent = avg(CounterValue) by bin(TimeGenerated, 30m), InstanceName
